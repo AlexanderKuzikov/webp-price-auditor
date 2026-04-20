@@ -8,8 +8,8 @@ const CONFIG_PATH = path.join(PROJECT_ROOT, 'config.json');
 
 const DEFAULTS = Object.freeze({
   provider: 'cloud',
-  apiBaseUrl: 'https://openrouter.ai/api/v1',
-  model: 'qwen/qwen2.5-vl-7b-instruct',
+  apiBaseUrl: 'https://api.vsellm.ru/v1',
+  model: 'qwen/qwen3.5-flash',
   httpReferer: '',
   xTitle: 'webp-price-auditor',
   inputDir: '',
