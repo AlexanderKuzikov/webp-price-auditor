@@ -64,7 +64,7 @@
 Особенности:
 
 - используется Bearer token;
-- ключ берётся из `OPENROUTER_API_KEY` или `API_KEY`;
+- ключ берётся из переменной окружения `OPENROUTER_API_KEY` или `API_KEY` в `.env`;
 - при запросе могут добавляться заголовки `HTTP-Referer` и `X-Title`.
 
 ## Структура проекта
@@ -111,11 +111,22 @@ npm start
 
 ## Конфигурация
 
-Основной конфиг хранится в `config.json`.
-Секреты и ключи доступа — в `.env`.
-Переменные окружения имеют приоритет над значениями из `config.json`.
+### Источник истины
 
-Пример конфигурации:
+**`config.json` — единственный источник конфигурации проекта.**
+
+В `.env` хранятся только секреты: API-ключ для cloud-режима.
+Все остальные параметры, включая `provider`, `apiBaseUrl` и `model`, задаются исключительно в `config.json`.
+
+`config.js` при загрузке строит итоговый объект `runtime` в следующем порядке:
+
+1. Встроенные defaults в `config.js` (fallback для необязательных полей).
+2. Значения из `config.json` — overwrite defaults.
+3. Только `OPENROUTER_API_KEY` / `API_KEY` из `.env` — overwrite ключ.
+
+Переменные `API_BASE_URL` и `MODEL` из окружения **не читаются** намеренно: это исключает расхождение между тем, что записано в файле, и тем, что фактически запустилось.
+
+### Пример config.json
 
 ```json
 {
@@ -125,9 +136,9 @@ npm start
   "httpReferer": "",
   "xTitle": "webp-price-auditor",
 
-  "inputDir": "C:\path\to\images",
-  "auditMismatchDir": "C:\path\to\_mismatch",
-  "logsDir": "C:\path\to\logs",
+  "inputDir": "C:\\path\\to\\images",
+  "auditMismatchDir": "C:\\path\\to\\_mismatch",
+  "logsDir": "C:\\path\\to\\logs",
 
   "promptFile": "prompts/prompt_price.txt",
   "supportedExtensions": [".webp", ".jpg", ".jpeg", ".png"],
@@ -160,6 +171,51 @@ npm start
   "cooldownAfterErrorMs": 3000
 }
 ```
+
+### Пример .env
+
+```dotenv
+# Для provider=cloud обязательно.
+# Для provider=local не нужен.
+OPENROUTER_API_KEY=sk-or-...
+```
+
+### Справочник параметров
+
+| Параметр | Тип | Описание |
+|---|---|---|
+| `provider` | `"cloud"` \| `"local"` | Тип провайдера |
+| `apiBaseUrl` | string | Base URL для API |
+| `model` | string | Имя модели |
+| `httpReferer` | string | Заголовок HTTP-Referer (cloud) |
+| `xTitle` | string | Заголовок X-Title (cloud) |
+| `inputDir` | string | Папка с исходными изображениями |
+| `auditMismatchDir` | string | Папка для MISMATCH/RECHECK_FAIL файлов |
+| `logsDir` | string | Папка для логов и артефактов |
+| `promptFile` | string | Путь к файлу с промптом |
+| `supportedExtensions` | string[] | Расширения файлов для обработки |
+| `imageWidthForModel` | number | Ширина изображения для модели (px) |
+| `jpegQualityForModel` | number | Качество JPEG для модели (1–100) |
+| `temperature` | number | Температура модели |
+| `topP` | number | Top-P модели |
+| `maxTokens` | number | Максимум токенов в ответе |
+| `seed` | number | Seed для воспроизводимости |
+| `concurrency` | number | Параллельные воркеры |
+| `timeoutMs` | number | Таймаут запроса (мс) |
+| `maxRetries` | number | Максимум retry на файл |
+| `retryBaseDelayMs` | number | Базовая задержка перед retry (мс) |
+| `stopAfter` | number | Остановить после N файлов (0 = без лимита) |
+| `resumeFromState` | boolean | Пропускать уже обработанные файлы |
+| `overwriteExisting` | boolean | Перезаписывать mismatch-файлы |
+| `adaptiveSpeed` | boolean | Адаптивный rate control |
+| `targetLatencyMs` | number | Целевая латентность для адаптации (мс) |
+| `minGapMs` | number | Минимальный gap между запросами (мс) |
+| `maxGapMs` | number | Максимальный gap между запросами (мс) |
+| `initialGapMs` | number | Начальный gap (мс) |
+| `decreaseStepMs` | number | Шаг уменьшения gap (мс) |
+| `increaseFactor` | number | Множитель увеличения gap |
+| `ewmaAlpha` | number | Alpha для EWMA latency (0–1) |
+| `cooldownAfterErrorMs` | number | Cooldown после ошибки API (мс) |
 
 ## Формат имени файла
 
@@ -223,7 +279,7 @@ Retry применяется к временным сбоям:
 
 После исчерпания попыток файл получает статус `RECHECK_FAIL` и копируется в папку ручной проверки.
 
-Неретраибельные ошибки, например `400`, `401`, `403`, `404` и `model not found`, должны завершать обработку файла без лишних повторов.
+Неретраибельные ошибки, например `400`, `401`, `403`, `404` и `model not found`, завершают обработку файла без лишних повторов.
 
 ## Копирование mismatch-файлов
 
@@ -269,21 +325,3 @@ Retry применяется к временным сбоям:
 - `logsDir` и `auditMismatchDir` не должны рекурсивно пересканироваться, если находятся внутри `inputDir`;
 - проект не использует сторонние HTTP-клиенты;
 - транспорт строится на нативном `fetch` и `AbortController`.
-
-## Дальнейшая реализация
-
-Порядок реализации модулей:
-
-1. `package.json`
-2. `.env.example`
-3. `src/config.js`
-4. `src/scanner.js`
-5. `src/image.js`
-6. `src/model-client.js`
-7. `src/parser.js`
-8. `src/rate-controller.js`
-9. `src/state.js`
-10. `src/reporter.js`
-11. `src/index.js`
-
-Этот README зафиксирован как рабочая спецификация проекта перед реализацией кода.

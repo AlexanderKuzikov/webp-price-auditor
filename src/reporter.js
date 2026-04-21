@@ -136,8 +136,8 @@ function createReporter(options) {
     }
 
     if (active.tty) {
-      renderNow();
       clearRenderBlock();
+      renderNow();
     } else {
       renderNonTty(true);
     }
@@ -205,7 +205,6 @@ function createReporter(options) {
     if (!active.tty) {
       return;
     }
-
     const lines = buildLines();
     clearRenderBlock();
     stream.write(lines.join('\n') + '\n');
@@ -226,13 +225,22 @@ function createReporter(options) {
       return;
     }
 
+    // Поднимаемся на начало блока (курсор сейчас на строке ПОСЛЕ последней)
+    readline.moveCursor(stream, 0, -active.renderedLines);
+    readline.cursorTo(stream, 0);
+
+    // Очищаем каждую строку блока сверху вниз
     for (let index = 0; index < active.renderedLines; index += 1) {
       readline.clearLine(stream, 0);
       if (index < active.renderedLines - 1) {
-        readline.moveCursor(stream, 0, -1);
+        readline.moveCursor(stream, 0, 1);
       }
     }
+
+    // Возвращаемся на начало блока
+    readline.moveCursor(stream, 0, -(active.renderedLines - 1));
     readline.cursorTo(stream, 0);
+
     active.renderedLines = 0;
   }
 

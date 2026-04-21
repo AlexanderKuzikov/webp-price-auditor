@@ -4,7 +4,10 @@
   "description": "Batch-аудит цен в именах файлов изображений через VLM с проверкой совпадений и выгрузкой mismatch-файлов на ручную перепроверку.",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "cleanup": "node src/cleanup.js",
+    "crop": "node src/crop.js",
+    "scan-vertical": "node src/scan-vertical.js"
   },
   "dependencies": {
     "dotenv": "^16",

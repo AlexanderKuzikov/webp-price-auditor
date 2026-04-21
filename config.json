@@ -4,9 +4,9 @@
   "model": "qwen/qwen3.5-flash",
   "httpReferer": "",
   "xTitle": "webp-price-auditor",
-  "inputDir": "C:\\path\\to\\images",
-  "auditMismatchDir": "C:\\path\\to\\_mismatch",
-  "logsDir": "C:\\path\\to\\logs",
+  "inputDir": "C:/-=Букеты=-/4. С ценой",
+  "auditMismatchDir": "C:/-=Букеты=-/_mismatch",
+  "logsDir": "C:/-=Букеты=-/logs",
   "promptFile": "prompts/prompt_price.txt",
   "supportedExtensions": [
     ".webp",
@@ -15,12 +15,12 @@
     ".png"
   ],
   "imageWidthForModel": 512,
-  "jpegQualityForModel": 85,
+  "jpegQualityForModel": 80,
   "temperature": 0,
   "topP": 1,
   "maxTokens": 16,
   "seed": 42,
-  "concurrency": 3,
+  "concurrency": 50,
   "timeoutMs": 30000,
   "maxRetries": 2,
   "retryBaseDelayMs": 2000,
@@ -35,5 +35,11 @@
   "decreaseStepMs": 100,
   "increaseFactor": 1.7,
   "ewmaAlpha": 0.2,
-  "cooldownAfterErrorMs": 3000
+  "cooldownAfterErrorMs": 3000,
+  "cropTop": 10,
+"cropBottom": 0,
+"cropOutputDir": "C:/-=Букеты=-/4. С ценой/forCrop/top",
+"scanSourceDir": "C:/-=Букеты=-/4. С ценой",
+"forCropDir": "C:/-=Букеты=-/4. С ценой/forCrop",
+"verticalRatio": 1.7
 }
